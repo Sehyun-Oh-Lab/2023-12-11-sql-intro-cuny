@@ -1,0 +1,381 @@
+---
+title: "Introduction to SQL"
+subtitle: "A brief introduction to SQL and relational databases using R and DuckDB"
+author:
+  - name: Sean Davis
+    orcid: 0000-0002-8991-6458
+    email: seandavi@gmail.com
+format:
+  html:
+    toc: true
+    embed-resources: true
+---
+
+# Introduction and background
+
+We're going to delve into the world of SQL, which stands for Structured Query Language. SQL is a powerful tool used to manage and manipulate structured data, and it plays a crucial role in the field of epidemiology and biostatistics, business, biomedical research, healthcare, and basically anywhere data are available.
+
+## Structured Data in SQL
+
+Structured data in the context of SQL refers to organized and well-defined data. Think of it as data that follows a specific structure, _like a well-organized spreadsheet_. In epidemiology and biostatistics, we often deal with large datasets containing information about diseases, patients, treatments, and various other factors.
+
+For example, imagine you have a dataset with information about patients, including their age, gender, medical history, and the type of treatment they received. Each piece of information is stored in a structured manner, making it easier to analyze and extract meaningful insights.
+
+## SQL is based on Relational Algebra
+
+Now, let's touch upon the basis of SQL in relational algebra. Relational algebra is a mathematical concept that forms the foundation of relational databases, and SQL is essentially a language built upon these principles.
+
+In epidemiology and biostatistics, we can draw parallels between relational algebra and the relationships we often explore in our datasets. The fundamental concepts include:
+
+- Relations (Tables)
+  : In SQL, tables are used to store data. Each table represents a relation, such as a table containing patient information or a table with details about different medical procedures.
+
+- Attributes (Columns)
+  : Attributes are the characteristics or properties of the data. In a table representing patients, attributes could include age, gender, and medical history.
+
+- Tuples (Rows)
+  : Tuples are individual data entries within a table. Each row in our patient table could be a tuple representing a specific patient's information.
+
+- Operations
+  : Relational algebra defines operations that can be performed on relations, such as selection (choosing specific rows), projection (choosing specific columns), and joining tables based on common attributes.
+
+![A pictorial representation of the components of relational algebra, including the relation (table), the attributes (columns), and the tuples (rows).](https://i.pinimg.com/736x/d9/7a/d7/d97ad764d7c13de3a2f48345aa0bef4c.jpg){#fig-relational-algebra .center}
+
+# Covid-19 open dataset
+
+Google maintains a public dataset containing information about the Covid-19 pandemic. The dataset is updated daily and contains information about cases, deaths, vaccinations, and other factors. The data is available in CSV format, which is a common format for storing structured data.
+
+We can download the data into our own tools and systems to analyze the virus’s spread or decline, investigate COVID-related deaths, study the effects of different vaccines, and more in 20,000-plus locations worldwide.
+
+We'll be using this dataset to explore SQL and relational databases. The dataset is available at the following link:
+
+- <https://health.google.com/covid-19/open-data/raw-data>
+
+
+# Setup for SQL
+
+## We need a database
+
+When working with SQL, we need a database to store our data. 
+A database is a collection of data that is organized in a structured manner. 
+We can think of a database as a container that holds our data and allows us to perform operations on it. 
+We can create, read, update, and delete data from a database, and we can also perform more complex operations such as joining data from multiple tables.
+
+We'll be using a relatively new database system called [DuckDB](https://duckdb.org/). 
+DuckDB is an embeddable SQL OLAP database management system. 
+DuckDB is ACID compliant and supports multi-threaded query execution and vectorized query execution.
+DuckDB is written in C++ and is available under the permissive MIT License, making it free and open-source software.
+
+The video below provides a brief introduction and tutorial for using DuckDB. 
+
+<iframe width="560" height="315" src="https://www.youtube.com/embed/ZX5FdqzGT1E?si=q3Vi13Oe7NHpI2-V" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+
+To use DuckDB in Rstudio, we'll need to install the `duckdb` and `DBI` packages.
+
+```{r eval=FALSE}
+install.packages(c('duckdb', 'DBI'))
+```
+
+Normally, the database would be running in a separate process or perhaps even on another machine somewhere.
+Commmon database systems include MySQL, PostgreSQL, and Oracle and each of these systems has its own advantages and disadvantages. 
+No matter which system you use, you'll need to connect to the database. 
+After doing so, SQL queries can be executed against the database and they will look very similar or the same to the SQL we write here. 
+
+## We need to connect to the database
+
+At this point, we need to "connect" to the database.
+R uses a common approach to connecting to databases called the Database Interface, or [DBI](https://dbi.r-dbi.org/).
+
+To do so, we need to load the `duckdb` and `DBI` packages and then use the `dbConnect()` function to connect to the database.
+
+```{r}
+library(duckdb)
+library(DBI)
+con <- dbConnect(duckdb::duckdb(), ":memory:")
+```
+
+If we had a database running on another machine, we would need to provide the connection information to the `dbConnect()` function. 
+The `con` variable is a connection object that we can use to interact with the database.
+
+```{r}
+con
+```
+
+For the first part of this tutorial, we'll be using a nice feature of Rstudio that allows us to use `SQL` chunks in our notebooks. 
+The goal is to get familiar with SQL and relational databases.
+Later, we'll switch to using R to interact with the database.
+
+## We need to load the data into the database
+
+For the purposes of this tutorial, we'll be using the Covid-19 open data dataset.
+
+The following stuff is just to get the data into the database.
+Often, data will be loaded into the database by someone else and we'll just need to connect to the database and start querying it.
+For the time being, just run the code and don't worry about the details.
+
+```{sql connection="con"}
+install httpfs;
+load httpfs;
+```
+
+```{sql connection="con"}
+create table 
+health
+as 
+select * from read_csv_auto('https://storage.googleapis.com/covid19-open-data/v3/health.csv')
+```
+
+```{sql connection="con"}
+create table
+locations
+as
+select * from read_csv_auto('https://storage.googleapis.com/covid19-open-data/v3/index.csv')
+```
+
+# Working with data in the database
+
+## High-level overview
+
+Now that we have the data loaded into the database, we can start to explore it.
+To get a list of tables (relations) in the database, we can use the `SHOW TABLES` command.
+
+```{sql connection="con"}
+SHOW TABLES
+```
+
+Those tables are the ones we just loaded into the database from the CSV files. 
+Take a look back at the code above to see how we did that. 
+The `CREATE TABLE` command is used to create a table in the database.
+
+To see the columns in a table, we can use the `DESCRIBE` command.
+
+```{sql connection="con"}
+DESCRIBE health
+```
+
+```{sql connection="con"}
+DESCRIBE locations
+```
+
+## `SELECT`ing data from the database
+
+The `SELECT` command is the most commonly used command in SQL and it is used to retrieve data from the database.
+The best way to understand SQL is to see it in action, so let's start with a simple example.
+
+```{sql connection="con"}
+SELECT * FROM health LIMIT 10
+```
+
+The `SELECT` command is followed by a list of columns to select from the table.
+In this case, we used `*` to select all columns. 
+The `FROM` command is followed by the name of the table to select from.
+The `LIMIT` command is used to limit the number of rows returned by the query.
+Without the `LIMIT` command, the query would return all rows in the table.
+
+We can also select specific columns from the table.
+
+```{sql connection="con"}
+-- a SQL comment
+-- Note that whitespace isn't important in SQL.
+-- We use it to make the code easier to read.
+SELECT 
+  location_key, 
+  life_expectancy, 
+  smoking_prevalence 
+FROM 
+  health 
+LIMIT 10
+```
+
+## Filtering data
+
+We can also filter the data using the `WHERE` command. After the `WHERE` command, we specify the condition that must be met for a row to be included in the result set.
+Just for fun, let's filter the data to only include rows where the `life_expectancy` is greater than 80.
+
+```{sql connection="con"}
+SELECT 
+  location_key, 
+  life_expectancy, 
+  smoking_prevalence
+FROM 
+  health
+WHERE
+  life_expectancy > 80
+LIMIT 10
+```
+
+We might want to filter the data to only include rows where the `life_expectancy` is greater than 80 and the `smoking_prevalence` is less than 10.
+
+```{sql connection="con"}
+SELECT 
+  location_key, 
+  life_expectancy, 
+  smoking_prevalence
+FROM 
+  health
+WHERE
+  smoking_prevalence < 10
+LIMIT 10
+```
+
+## Counting results
+
+We can use the `COUNT` command to count the number of rows in the result set.
+
+* How many rows are in the `health` table?
+
+```{sql connection="con"}
+SELECT 
+  COUNT(*)
+FROM
+  health
+```
+
+And using `COUNT` allows us to start asking questions about the data.
+
+* What are the number of locations with a life expectancy greater than 80?
+
+```{sql connection="con"}
+SELECT 
+  COUNT(*)
+FROM
+  health
+WHERE
+  life_expectancy > 80
+```
+
+* What are the minimum, maximum, and average life expectancies?
+
+```{sql connection="con"}
+SELECT 
+  MIN(life_expectancy),
+  MAX(life_expectancy),
+  AVG(life_expectancy)
+FROM 
+  health
+```
+
+There is clearly something up with the maximum life expectancy. 
+Let's take a look at the data, but sort it (order it) by the `life_expectancy` column.
+
+```{sql connection="con"}
+SELECT 
+  *
+FROM
+  health
+ORDER BY
+  -- the DESC keyword means descending
+  life_expectancy DESC
+LIMIT 5
+```
+
+## Joining two tables
+
+We can use the `JOIN` command to join two tables together. In our last queries, 
+we saw that the `health` table has a `location_key` column. If we have another table
+that has a column with the same values in it, we can join the two tables together.
+
+Let's take a look at the `locations` table.
+
+```{sql connection="con"}
+SELECT 
+  *
+FROM
+  locations
+LIMIT 5
+```
+
+The `locations` table has a `key` column that has the same values as the `location_key` column in the `health` table.
+We can use the `JOIN` command to join the two tables together.
+
+```{sql connection="con"}
+SELECT 
+  *
+FROM
+  health
+JOIN 
+  locations
+ON locations.location_key = health.location_key
+limit 10
+```
+
+## Aggregating data
+
+We can use the `GROUP BY` command to aggregate data.
+In this case, we'll use it to count the number of locations in each country.
+
+```{sql connection="con"}
+SELECT 
+  COUNT(*) as num_locations,
+  country_name
+FROM
+  locations
+GROUP BY
+  country_name
+ORDER BY
+  num_locations DESC
+```
+
+# Using SQL in R
+
+Up to now, we have been using SQL chunks in our R notebooks. 
+This works great for exploring the data, but we'll often want to use R to interact with the database.
+For example, we might want to use R to create a plot of the data in the database.
+
+We can use the `con` object to interact with the database from R.
+
+```{r}
+con
+```
+
+We can use the `dbGetQuery` function to run a query and return the results as a data frame.
+
+```{r}
+health_sample <- dbGetQuery(con, "SELECT * FROM health LIMIT 10")
+```
+
+The `health_sample` object is a data frame. 
+
+* How many rows and columns does it have?
+
+```{r}
+dim(health_sample)
+colnames(health_sample)
+```
+
+We can use the `ggplot` function to create a plot of the data.
+Let's take a look at the relationshop between `life_expectancy` and `smoking_prevalence`,
+but for the whole dataset.
+
+```{r}
+smoke_life <- dbGetQuery(con, "SELECT life_expectancy, smoking_prevalence FROM health")
+```
+
+```{r}
+library(ggplot2)
+ggplot(smoke_life, aes(x = smoking_prevalence, y = life_expectancy)) +
+  geom_point()
+```
+
+We forgot to filter out the crazy outlier. Let's try that again.
+
+```{r}
+smoke_life <- dbGetQuery(con, "SELECT life_expectancy, smoking_prevalence FROM health WHERE life_expectancy < 100")
+```
+
+```{r}
+ggplot(smoke_life, aes(x = smoking_prevalence, y = life_expectancy)) +
+  geom_point()
+```
+
+# Conclusion
+
+SQL is a powerful tool for working with data.
+It is not uncommon for data scientists to spend a significant amount of time writing SQL queries.
+In this lesson, we learned how to use SQL to create a database, load data into the database, and query the database. 
+We also learned how to use SQL in R to interact with the database.
+
+As an additional note, we can use the [dbplyr](https://dbplyr.tidyverse.org/) package to use SQL in R.
+This package allows us to use the `dplyr` package to interact with the database, 
+so the SQL code is hidden from us. However, the database still does the work. 
+
