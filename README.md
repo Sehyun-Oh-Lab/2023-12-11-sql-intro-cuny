@@ -59,6 +59,83 @@ src="https://i.pinimg.com/736x/d9/7a/d7/d97ad764d7c13de3a2f48345aa0bef4c.jpg"
 id="fig-relational-algebra" class="center"
 alt="Figure 1: A pictorial representation of the components of relational algebra, including the relation (table), the attributes (columns), and the tuples (rows)." />
 
+## SQL vs R/dplyr and python/pandas
+
+SQL (Structured Query Language), R with dplyr, and Python with pandas
+are all powerful tools for data manipulation and analysis, but they
+serve different purposes and have distinct strengths. The choice between
+them depends on various factors, including the task at hand, personal
+preferences, and the specific requirements of the project. Here are some
+reasons why someone might choose SQL over R/dplyr or Python/pandas:
+
+### Database Interaction:
+
+- SQL  
+  SQL is specifically designed for interacting with relational
+  databases. If your data is stored in a relational database, using SQL
+  allows for efficient querying, updating, and managing of data directly
+  within the database.
+
+- R/dplyr and Python/pandas  
+  While both R and Python can interact with databases, SQL is often more
+  optimized and straightforward for working with relational databases.
+
+### Performance:
+
+- SQL  
+  Database systems are optimized for SQL queries, and performing
+  operations directly within the database can be more efficient,
+  especially when dealing with large datasets.
+
+- R/dplyr and Python/pandas  
+  These tools are more versatile and can handle various data
+  manipulation tasks, but they may not be as optimized as SQL for
+  database-specific operations.
+
+### Data Cleaning and Transformation:
+
+- R/dplyr and Python/pandas  
+  These tools offer a wide range of functions and methods for data
+  cleaning, transformation, and analysis. They are well-suited for tasks
+  that involve complex data manipulations, statistical analyses, and
+  machine learning.
+
+- SQL  
+  While SQL can perform basic data manipulations, it may be less
+  expressive than R/dplyr or Python/pandas for complex transformations
+  and analyses.
+
+### Integration with Other Tools:
+
+- R/dplyr and Python/pandas  
+  These tools seamlessly integrate with a wide range of data science
+  libraries, machine learning frameworks, and visualization tools. They
+  are part of larger ecosystems that support end-to-end data analysis
+  workflows.
+
+- SQL  
+  SQL is often used in conjunction with other tools and languages. It is
+  crucial for database management and can be part of a broader data
+  processing pipeline.
+
+### Personal Preference and Familiarity:
+
+- SQL  
+  Some individuals or organizations may have a strong preference for
+  SQL, especially if they have a background in database management or if
+  their data is primarily stored in relational databases.
+
+- R/dplyr and Python/pandas  
+  Data scientists and analysts who are more comfortable with programming
+  languages like R or Python may prefer using these tools for their
+  flexibility and extensibility.
+
+In practice, many data professionals use a combination of these tools,
+leveraging the strengths of each depending on the specific requirements
+of their tasks. It’s not uncommon to use SQL for database interactions
+and initial data extraction, followed by R/dplyr or Python/pandas for
+more complex data manipulation and analysis.
+
 # Covid-19 open dataset
 
 Google maintains a public dataset containing information about the
@@ -145,7 +222,7 @@ the database.
 con
 ```
 
-    <duckdb_connection 64530 driver=<duckdb_driver 44060 dbdir=':memory:' read_only=FALSE bigint=numeric>>
+    <duckdb_connection ef8c0 driver=<duckdb_driver 5fe70 dbdir=':memory:' read_only=FALSE bigint=numeric>>
 
 For the first part of this tutorial, we’ll be using a nice feature of
 Rstudio that allows us to use `SQL` chunks in our notebooks. The goal is
@@ -555,7 +632,7 @@ We can use the `con` object to interact with the database from R.
 con
 ```
 
-    <duckdb_connection 64530 driver=<duckdb_driver 44060 dbdir=':memory:' read_only=FALSE bigint=numeric>>
+    <duckdb_connection ef8c0 driver=<duckdb_driver 5fe70 dbdir=':memory:' read_only=FALSE bigint=numeric>>
 
 We can use the `dbGetQuery` function to run a query and return the
 results as a data frame.
