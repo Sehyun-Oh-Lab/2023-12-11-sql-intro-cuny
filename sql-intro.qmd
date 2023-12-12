@@ -68,7 +68,7 @@ DuckDB is written in C++ and is available under the permissive MIT License, maki
 
 The video below provides a brief introduction and tutorial for using DuckDB. 
 
-<iframe width="560" height="315" src="https://www.youtube.com/embed/ZX5FdqzGT1E?si=q3Vi13Oe7NHpI2-V" title="YouTube video player" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+{{< video https://www.youtube.com/embed/ZX5FdqzGT1E?si=q3Vi13Oe7NHpI2-V width="560" height="315" >}}
 
 To use DuckDB in Rstudio, we'll need to install the `duckdb` and `DBI` packages.
 
